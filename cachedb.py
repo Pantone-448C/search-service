@@ -3,19 +3,17 @@ from google.cloud.firestore_v1.document import DocumentReference
 from pymongo import GEOSPHERE, WriteConcern, MongoClient, ReadPreference, TEXT
 from pymongo.errors import CollectionInvalid
 from pymongo.read_concern import ReadConcern
-
 import firebase
 import time
 
 from bson.codec_options import TypeCodec, TypeRegistry, CodecOptions
 
 DB_NAME = "wanderlist"
-CONNECTION_STRING = "mongodb://127.0.0.1:27017/wanderlist&replicaSet=WanMongoReplSet"
+CONNECTION_STRING = "mongodb://127.0.0.1:27017/wanderlist"
 USE_TRANSACTION = False
 
 
 def get_db():
-    from pymongo import MongoClient
     return MongoClient(CONNECTION_STRING)[DB_NAME]
 
 
