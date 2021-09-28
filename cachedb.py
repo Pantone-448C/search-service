@@ -1,5 +1,5 @@
 DB_NAME = "wanderlist"
-CONNECTION_STRING = "mongodb://127.0.0.1:27017/wanderlist"
+CONNECTION_STRING = "mongodb://127.0.0.1:27017/wanderlist&replicaSet=WanMongoReplSet"
 
 def get_db():
     from pymongo import MongoClient
