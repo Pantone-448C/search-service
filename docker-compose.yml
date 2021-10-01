@@ -5,6 +5,9 @@ services:
     build: .
     ports:
       - 8080:8080
+    environment:
+      - 'MONGO_URI=mongodb://activities-db:27017/wanderlist'
+      - 'ADMIN_KEY_FILE=wanderlistkey.json'
     networks:
       - db-network
   activities-db:

@@ -2,8 +2,10 @@ import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
 
+import os
+
 # https://firebase.google.com/docs/firestore/quickstart
-cred = credentials.Certificate("wanderlistkey.json")
+cred = credentials.Certificate(os.environ.get("ADMIN_KEY_FILE"))
 firebase_admin.initialize_app(cred)
 
 def get_db():

@@ -20,6 +20,3 @@ python main.py
 
 - `python cachedb.py` will sync the Firestore into mongodb
 - `python main.py` will sync the Firestore and start the flask server
-
-
-
