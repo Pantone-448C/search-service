@@ -8,8 +8,11 @@ import time
 
 from bson.codec_options import TypeCodec, TypeRegistry, CodecOptions
 
+import os
+
 DB_NAME = "wanderlist"
-CONNECTION_STRING = "mongodb://127.0.0.1:27017/wanderlist"
+CONNECTION_STRING = os.environ.get("MONGO_URI")
+print(CONNECTION_STRING)
 USE_TRANSACTION = False
 
 
