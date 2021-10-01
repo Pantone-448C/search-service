@@ -1,0 +1,16 @@
+services:
+  search-api:
+    depends_on:
+      - activities-db
+    build: .
+    ports:
+      - 8080:8080
+    networks:
+      - db-network
+  activities-db:
+    image: mongo
+    networks:
+      - db-network
+networks:
+  db-network:
+    driver: bridge

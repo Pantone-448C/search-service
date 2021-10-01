@@ -9,7 +9,7 @@ import time
 from bson.codec_options import TypeCodec, TypeRegistry, CodecOptions
 
 DB_NAME = "wanderlist"
-CONNECTION_STRING = "mongodb://127.0.0.1:27017/wanderlist"
+CONNECTION_STRING = "mongodb://activities-db:27017/wanderlist"
 USE_TRANSACTION = False
 
 
