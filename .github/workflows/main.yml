@@ -17,3 +17,4 @@ jobs:
          stack_file_name: docker-compose.yml
          copy_stack_file: true
          args: up -d --build
+         deploy_path: /home/search-api/docker-deployment
