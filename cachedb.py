@@ -1,3 +1,4 @@
+import bson
 from google.cloud.firestore_v1 import GeoPoint
 from google.cloud.firestore_v1.document import DocumentReference
 from pymongo import GEOSPHERE, WriteConcern, MongoClient, ReadPreference, TEXT
@@ -11,7 +12,7 @@ from bson.codec_options import TypeCodec, TypeRegistry, CodecOptions
 import os
 
 DB_NAME = "wanderlist"
-CONNECTION_STRING = os.environ.get("MONGO_URI")
+CONNECTION_STRING = os.environ.get("MONGO_URI") + "/" + DB_NAME
 print(CONNECTION_STRING)
 USE_TRANSACTION = False
 
@@ -20,16 +21,12 @@ def get_db():
     return MongoClient(CONNECTION_STRING)[DB_NAME]
 
 
-"""
-
-Convert a firebase document reference to 
-
-https://pymongo.readthedocs.io/en/stable/examples/custom_type.html
-
-"""
-
-
 class FBRefCodec(TypeCodec):
+    """
+    Convert a firebase document reference to
+
+    https://pymongo.readthedocs.io/en/stable/examples/custom_type.html
+    """
     python_type = DocumentReference
     bson_type = dict
 
@@ -38,6 +35,10 @@ class FBRefCodec(TypeCodec):
 
     def transform_bson(self, value):
         return firebase.get_db().reference(value)
+
+
+def user_is_admin(uid):
+    return get_db().admins.find_one({"_id": uid}) is not None
 
 
 class FBGeoPointCodec(TypeCodec):

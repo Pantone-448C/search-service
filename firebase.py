@@ -1,6 +1,7 @@
 import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
+from firebase_admin import auth
 
 import os
 
@@ -20,4 +21,8 @@ if __name__ == "__main__":
     for doc in docs:
         print(f'{doc.id} => {doc.to_dict()}')
 
+
+def verify_token(id_token):
+    decoded_token = auth.verify_id_token(id_token)
+    return decoded_token
 
