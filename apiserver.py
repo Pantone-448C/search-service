@@ -152,7 +152,8 @@ def getuser():
 
         content["_id"] = request.user["uid"]
         content["_updated"] = time.time()
-        res = mongo.db.users.insert_one(content)
+        res = mongo.db.users.update({'_id': request.user["uid"]}, content, True)
+        return {}
 
 
 @app.route('/rewards/totalpoints', methods=["GET"])
