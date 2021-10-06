@@ -13,3 +13,5 @@ NEAR_ARGS = ({"error": "Bad request",
 BAD_COLLECTION = ({"error": "Not found"}, 400)
 
 NO_AUTH = ({"error": "No authorization"}, 401)
+
+NO_REWARDS = ({"error": "No appropriate reward found"}, 404)

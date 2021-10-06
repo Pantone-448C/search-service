@@ -76,9 +76,8 @@ def sync_table(session, name: str):
 
 
 def sync_callback(session):
-    sync_table(session, "users")
-    sync_table(session, "wanderlists")
-    sync_table(session, "activities")
+    for collection in ["users", "wanderlists", "activities", "rewards"]:
+        sync_table(session, collection)
 
 
 def init():
@@ -86,11 +85,12 @@ def init():
     Create the collections and search indexes that are mirrored from firebase
     """
     client = MongoClient(CONNECTION_STRING)
-    try:
-        client.wanderlist.create_collection("users")
-    except CollectionInvalid as e:
-        print(e)
-        pass
+    for c in ["users", "rewards"]:
+        try:
+            client.wanderlist.create_collection(c)
+        except CollectionInvalid as e:
+            print(e)
+            pass
     try:
         client.wanderlist.create_collection("activities")
         client.wanderlist.activities.create_index([("location", GEOSPHERE)])

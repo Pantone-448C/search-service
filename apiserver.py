@@ -1,12 +1,8 @@
 import json
 import time
-
-import bson
-
 import cachedb
 from flask import Flask, jsonify, request
 from flask_pymongo import PyMongo
-
 import firebase
 from util import *
 from constant_responses import *
@@ -16,6 +12,12 @@ app.config["MONGO_URI"] = cachedb.CONNECTION_STRING
 mongo = PyMongo(app)
 
 ENFORCE_AUTH = True
+
+
+def get_request_user():
+    return clean_document(mongo.db.users.find_one(
+        {"_id": request.user['uid']})
+    )
 
 
 @app.errorhandler(404)
@@ -58,6 +60,7 @@ def activity():
         return activitylist()
 
     return {"error": "Provide search argument near or query"}, 400
+
 
 def activitylist():
     activities = []
@@ -133,7 +136,7 @@ def genericcrud(collection, id):
 @app.route('/user', methods=["GET", "POST"])
 def getuser():
     if request.method == "GET":
-        res = clean_document(mongo.db.users.find_one({"_id": request.user['uid']}))
+        res = get_request_user()
         if res is None:
             return BAD_COLLECTION
         if "wanderlists" in res.keys():
@@ -156,9 +159,24 @@ def getuser():
         return {}
 
 
-@app.route('/rewards/totalpoints', methods=["GET"])
+@app.route('/user/rewards/totalpoints', methods=["GET"])
 def rewardsteps():
     return jsonify(1000)
+
+
+@app.route('/user/rewards/next', methods=["GET"])
+def recommend_reward():
+    user = get_request_user()
+    if "rewards" not in user:
+        return mongo.db.rewards.find_one()
+
+    users_rewards = [r["reward"]["ref"].split("/")[1] for r in user["rewards"]]
+    cursor = mongo.db.rewards.find({"_id": {"$not": {"$in": users_rewards}}})
+    available_rewards = [r for r in cursor]
+    if len(available_rewards) == 0:
+        return NO_REWARDS
+    # choose the best one
+    return jsonify(clean_document(available_rewards[0]))
 
 
 if __name__ == "__main__":
