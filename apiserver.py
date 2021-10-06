@@ -111,7 +111,7 @@ def index():
 
 @app.route('/<string:collection>/<string:id>', methods=["GET", "POST"])
 def genericcrud(collection, id):
-    if collection not in ["activities", "wanderlists"]:
+    if collection not in ["activities", "wanderlists", "rewards"]:
         return BAD_COLLECTION
     if request.method == "GET":
         res = mongo.db[collection].find_one({"_id": id})
