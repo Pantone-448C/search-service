@@ -6,6 +6,7 @@ from flask_pymongo import PyMongo
 import firebase
 from util import *
 from constant_responses import *
+from systems import *
 
 app = Flask(__name__)
 app.config["MONGO_URI"] = cachedb.CONNECTION_STRING
@@ -23,6 +24,11 @@ def get_request_user():
 @app.errorhandler(404)
 def resource_not_found(e):
     return jsonify(error=str(e)), 404
+
+
+@app.errorhandler(500)
+def resource_not_found(e):
+    return jsonify(error=str(e)), 500
 
 
 @app.before_request
@@ -58,8 +64,25 @@ def activity():
         return activitysearch()
     if "activities" in request.args.keys():
         return activitylist()
+    if "wanderlist" in request.args.keys():
+        return activitywanderlist()
 
     return {"error": "Provide search argument near or query"}, 400
+
+
+def activitywanderlist():
+    """
+    recommend a list of activities based on an existing wanderlist.
+    """
+    id = request.args["wanderlist"]
+    res = mongo.db.wanderlists.find_one({"_id": id})
+    if res is None:
+        return NOT_FOUND
+    wanderlist = Wanderlist(clean_document(cachedb.fill_all_refs(mongo, res)))
+    print(wanderlist.json())
+
+    acts = recommend_activities(wanderlist, mongo)
+    return jsonify(acts)
 
 
 def activitylist():
@@ -111,12 +134,16 @@ def index():
 
 @app.route('/<string:collection>/<string:id>', methods=["GET", "POST"])
 def genericcrud(collection, id):
-    if collection not in ["activities", "wanderlists", "rewards"]:
+    routes = ["activities", "wanderlists", "rewards"]
+    if not ENFORCE_AUTH:
+        routes.append("users")
+
+    if collection not in routes:
         return BAD_COLLECTION
     if request.method == "GET":
         res = mongo.db[collection].find_one({"_id": id})
         if res is not None:
-            return clean_document(res)
+            return cachedb.fill_all_refs(mongo, res)
 
     if request.method == "POST":
         if not cachedb.user_is_admin(request.user["uid"]):
@@ -139,14 +166,7 @@ def getuser():
         res = get_request_user()
         if res is None:
             return BAD_COLLECTION
-        if "wanderlists" in res.keys():
-            for i in range(len(res["wanderlists"])):
-                # replace wanderlist references with the actual list
-                l = res["wanderlists"][i]
-                wanderlist = mongo.db.wanderlists.find_one({"_id": l["wanderlist"]["ref"].split("/")[1]})
-                wanderlist = clean_document(wanderlist)
-                res["wanderlists"][i]["wanderlist"] = wanderlist
-        return res
+        return cachedb.fill_all_refs(mongo, res)
     if request.method == "POST":
         content = request.get_json()
 
