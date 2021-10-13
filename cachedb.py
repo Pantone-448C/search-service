@@ -1,3 +1,5 @@
+import json
+
 import bson
 from google.cloud.firestore_v1 import GeoPoint
 from google.cloud.firestore_v1.document import DocumentReference
@@ -11,6 +13,8 @@ from bson.codec_options import TypeCodec, TypeRegistry, CodecOptions
 
 import os
 
+from util import clean_document
+
 DB_NAME = "wanderlist"
 CONNECTION_STRING = os.environ.get("MONGO_URI") + "/" + DB_NAME
 print(CONNECTION_STRING)
@@ -18,7 +22,7 @@ USE_TRANSACTION = False
 
 
 def get_db():
-    return MongoClient(CONNECTION_STRING)[DB_NAME]
+    return MongoClient(CONNECTION_STRING)
 
 
 class FBRefCodec(TypeCodec):
@@ -132,6 +136,30 @@ def sync_all():
         sync_transacted()
     else:
         sync_notransaction()
+
+
+def fill_ref(mongo, ref_str):
+    r = ref_str.split("/")
+    coll = r[0]
+    id = r[1]
+    return clean_document(mongo.db[coll].find_one({"_id": id}))
+
+
+def fill_all_refs(mongo, doc: json):
+
+    items = None
+    if isinstance(doc, dict):
+        if "ref" in doc.keys():
+            return fill_ref(mongo, doc["ref"])
+        items = doc.items()
+    elif isinstance(doc, list):
+        items = [(i, doc[i]) for i in range(len(doc))]
+
+    if items is not None:
+        for key, val in items:
+            doc[key] = fill_all_refs(mongo, val)
+
+    return doc
 
 
 if __name__ == "__main__":
