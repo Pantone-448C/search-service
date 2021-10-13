@@ -57,7 +57,11 @@ def compare_activity(wanderlist: Wanderlist, activity: Activity):
 
         score += tagscore * dist
 
-    score /= len(activity.tags())
+    if len(activity.tags()) > 0:
+        score /= len(activity.tags())
+    if len(wanderlist.activities()) > 0:
+        score /= len(wanderlist.activities())
+
     return score
 
 
@@ -72,12 +76,14 @@ def recommend_activities(wanderlist: Wanderlist, mongo):
     locs = wanderlist_location(wanderlist)
 
     activities = {}
+    existing_activities = [a.id() for a in wanderlist.activities()]
     for loc in locs:
         lat, lon = loc
         rng = km_to_radian(MAX_REC_DIST)
         for a in activities_near(mongo, lat, lon, rng):
-            if a.id() in activities.keys():
+            if a.id() in activities.keys() or a.id() in existing_activities:
                 continue
+
             doc = a.json()
             doc["similarity_score"] = compare_activity(wanderlist, a)
             activities[a.id()] = doc
