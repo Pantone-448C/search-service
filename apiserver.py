@@ -16,9 +16,8 @@ ENFORCE_AUTH = True
 
 
 def get_request_user():
-    return clean_document(mongo.db.users.find_one(
-        {"_id": request.user['uid']})
-    )
+    user = mongo.db.users.find_one({"_id": request.user['uid']})
+    return user
 
 
 @app.errorhandler(404)
@@ -205,8 +204,18 @@ def genericcreate(collection):
 def getuser():
     if request.method == "GET":
         res = get_request_user()
+
         if res is None:
-            return BAD_COLLECTION
+            doc = firebase.get_db().collection(u'users').document(request.user['uid'])
+            if doc.get().to_dict() is None:
+                return NOT_FOUND
+
+            res = doc.get().to_dict()
+            res["_id"] = doc.id
+            res["_updated"] = time.time()
+            mdbref = mongo.db.get_collection("users", codec_options=cachedb.codec_options)
+            mdbref.replace_one({"_id": doc.id}, res, upsert=True)
+
         return cachedb.fill_all_refs(mongo, res)
     if request.method == "POST":
         content = request.get_json()
