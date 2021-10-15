@@ -1,4 +1,5 @@
 from pymongo.cursor import Cursor
+import uuid
 
 
 def km_to_radian(x: float):
@@ -24,3 +25,7 @@ def clean_document(d):
     d.pop("_id")
     d.pop("_updated")
     return d
+
+
+def new_docid():
+    return uuid.uuid4().hex
