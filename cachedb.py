@@ -16,7 +16,7 @@ import os
 from util import clean_document
 
 DB_NAME = "wanderlist"
-CONNECTION_STRING = os.environ.get("MONGO_URI") + "/" + DB_NAME
+CONNECTION_STRING = os.environ.get("MONGO_URI")
 print(CONNECTION_STRING)
 USE_TRANSACTION = False
 
