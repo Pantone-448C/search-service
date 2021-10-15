@@ -139,25 +139,36 @@ def sync_all():
 
 
 def fill_ref(mongo, ref_str):
-    r = ref_str.split("/")
+    r = ref_str["ref"].split("/")
     coll = r[0]
-    id = r[1]
-    return clean_document(mongo.db[coll].find_one({"_id": id}))
+    docid = r[1]
+    record = mongo.db[coll].find_one({"_id": docid})
+    if (record is not None):
+        return clean_document(record)
+
+    print(f"WARN: Ref miss: {ref_str}")
+    return ref_str["ref"]
 
 
 def fill_all_refs(mongo, doc: json):
 
-    items = None
-    if isinstance(doc, dict):
-        if "ref" in doc.keys():
-            return fill_ref(mongo, doc["ref"])
-        items = doc.items()
-    elif isinstance(doc, list):
-        items = [(i, doc[i]) for i in range(len(doc))]
 
-    if items is not None:
-        for key, val in items:
+    if isinstance(doc, dict):
+        if ('ref' in doc.keys()):
+            doc = fill_all_refs(mongo, fill_ref(mongo, doc))
+            return doc
+
+    if isinstance(doc, dict):
+        for key,val in doc.items():
             doc[key] = fill_all_refs(mongo, val)
+
+        if "_id" in doc:
+            doc["id"] = doc.pop("_id")
+        if "_updated" in doc:
+            doc.pop("_updated")
+    elif isinstance(doc, list) and not (isinstance(doc, str) or isinstance(doc, int) or isinstance(doc, float)):
+        for i in range(len(doc)):
+            doc[i] = fill_all_refs(mongo, doc[i])
 
     return doc
 

@@ -66,8 +66,10 @@ def activity():
         return activitylist()
     if "wanderlist" in request.args.keys():
         return activitywanderlist()
+    if "rec" in request.args.keys():
+        return activitiesrecforuser()
 
-    return {"error": "Provide search argument near or query"}, 400
+    return {"error": "Provide search argument lat,lon or query, list of activties, wanderlistid or 'rec'"}, 400
 
 
 def activitywanderlist():
@@ -79,10 +81,27 @@ def activitywanderlist():
     if res is None:
         return NOT_FOUND
     wanderlist = Wanderlist(clean_document(cachedb.fill_all_refs(mongo, res)))
-    print(wanderlist.json())
 
-    acts = recommend_activities(wanderlist, mongo)
+    acts = {"results": recommend_activities(wanderlist, mongo)}
     return jsonify(acts)
+
+
+def activitiesrecforuser():
+    """
+    recommend a list of activities based on an existing wanderlist.
+    """
+
+    userlists = clean_document(mongo.db.users.find_one(
+        {"_id": request.user['uid']}))["wanderlists"]
+
+    if (userlists is None or len(userlists) == 0):
+        return cursor_to_json(mongo.db.activities.find().limit(50))
+
+    wanderlist = Wanderlist(cachedb.fill_all_refs(mongo, userlists[0]["wanderlist"]))
+
+    acts = {"results": recommend_activities(wanderlist, mongo)}
+    return jsonify(acts)
+
 
 
 def activitylist():
@@ -146,8 +165,6 @@ def genericcrud(collection, id):
             return cachedb.fill_all_refs(mongo, res)
 
     if request.method == "POST":
-        if not cachedb.user_is_admin(request.user["uid"]):
-            return jsonify({"error": "Not permitted"}), 401
         content = request.get_json()
 
         if content is None:
@@ -155,9 +172,33 @@ def genericcrud(collection, id):
 
         content["_id"] = id
         content["_updated"] = time.time()
-        res = mongo.db[collection].insert_one(content)
+        res = mongo.db[collection].update_one({"_id": id}, {'$set': content})
+        if (res is None):
+            return {"error:", "Document doesnt exist, use create method instead"}, 400
 
     return {}
+
+
+@app.route('/<string:collection>', methods=["POST"])
+def genericcreate(collection):
+    routes = ["activities", "wanderlists", "rewards"]
+    if not ENFORCE_AUTH:
+        routes.append("users")
+    if collection not in routes:
+        return BAD_COLLECTION
+
+    content = request.get_json()
+
+    if content is None:
+        return {"error": "No document"}, 400
+
+    content["id"] = new_docid()
+    content["_id"] = content["id"]
+    content["_updated"] = time.time()
+    res = mongo.db[collection].insert_one(content)
+
+    return jsonify(content)
+
 
 
 @app.route('/user', methods=["GET", "POST"])
