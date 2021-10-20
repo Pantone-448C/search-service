@@ -210,13 +210,15 @@ def getuser():
             if doc.get().to_dict() is None:
                 return NOT_FOUND
 
+            print("Account not  found, falling back to firebase")
             res = doc.get().to_dict()
             res["_id"] = doc.id
             res["_updated"] = time.time()
             mdbref = mongo.db.get_collection("users", codec_options=cachedb.codec_options)
             mdbref.replace_one({"_id": doc.id}, res, upsert=True)
 
-        return cachedb.fill_all_refs(mongo, res)
+        val = cachedb.fill_all_refs(mongo, res)
+        return val
     if request.method == "POST":
         content = request.get_json()
 
