@@ -15,7 +15,7 @@ def stop_scheduled():
     job_server.close()
 
 if __name__ == "__main__":
-    # cachedb.sync_all()
+    cachedb.sync_all()
     ctx = mp.get_context('spawn')
 
     job_server = ctx.Process(target=scheduled.run)
