@@ -21,7 +21,7 @@ def update_wanderlist_thumbs():
                     if len(activity['image_url']) > 2:
                         #list['icon'] = activity['image_url']
                         c.get_collection('wanderlists').update(
-                            {"_id": list['_id']}, {'icon': activity['image_url']})
+                            {"_id": list['_id']}, {"$set": {'icon': activity['image_url']}})
 
 def run():
     print("Started scheduled jobs")
