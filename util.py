@@ -21,8 +21,8 @@ def cursor_to_json(c: Cursor):
 
 
 def clean_document(d):
-    d["id"] = d["_id"]
-    d.pop("_id")
+    if "_id" in d.keys():
+        d["id"] = d.pop("_id")
     if "_updated" in d.keys():
         d.pop("_updated")
     return d
