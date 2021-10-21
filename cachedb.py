@@ -147,20 +147,25 @@ def fill_ref(mongo, ref_str):
         return clean_document(record)
 
     print(f"WARN: Ref miss: {ref_str}")
-    return ref_str["ref"]
+    return None
 
 
 def fill_all_refs(mongo, doc: json):
 
+    if doc is None:
+        return doc
 
     if isinstance(doc, dict):
         if ('ref' in doc.keys()):
+            # thing is reference
             doc = fill_all_refs(mongo, fill_ref(mongo, doc))
             return doc
 
     if isinstance(doc, dict):
         for key,val in doc.items():
             doc[key] = fill_all_refs(mongo, val)
+            if doc[key] is None:
+                doc.pop(key)
 
         if "_id" in doc:
             doc["id"] = doc.pop("_id")
@@ -169,6 +174,8 @@ def fill_all_refs(mongo, doc: json):
     elif isinstance(doc, list) and not (isinstance(doc, str) or isinstance(doc, int) or isinstance(doc, float)):
         for i in range(len(doc)):
             doc[i] = fill_all_refs(mongo, doc[i])
+            if doc[i] is None:
+                doc.pop(i)
 
     return doc
 
