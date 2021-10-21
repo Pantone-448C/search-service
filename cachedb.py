@@ -163,19 +163,23 @@ def fill_all_refs(mongo, doc: json):
 
     if isinstance(doc, dict):
         for key,val in doc.items():
-            doc[key] = fill_all_refs(mongo, val)
-            if doc[key] is None:
+            val = fill_all_refs(mongo, val)
+            if val is None:
                 doc.pop(key)
+            else:
+                doc[key] = val
 
         if "_id" in doc:
             doc["id"] = doc.pop("_id")
         if "_updated" in doc:
             doc.pop("_updated")
     elif isinstance(doc, list) and not (isinstance(doc, str) or isinstance(doc, int) or isinstance(doc, float)):
-        for i in range(len(doc)):
-            doc[i] = fill_all_refs(mongo, doc[i])
-            if doc[i] is None:
+        for i in reversed(range(len(doc))):
+            ndoc = fill_all_refs(mongo, doc[i])
+            if ndoc is None:
                 doc.pop(i)
+            else: 
+                doc[i] = ndoc
 
     return doc
 
