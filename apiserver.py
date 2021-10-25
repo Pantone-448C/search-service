@@ -16,7 +16,11 @@ ENFORCE_AUTH = True
 
 
 def get_request_user():
-    user = mongo.db.users.find_one({"_id": request.user['uid']})
+    if (ENFORCE_AUTH):
+        user = mongo.db.users.find_one({"_id": request.user['uid']})
+    else:
+        user = mongo.db.users.find_one({"_id": "XnlSRZqHepPM3HCDY2NV4BETTJC3"})
+
     return user
 
 
@@ -82,6 +86,9 @@ def activitywanderlist():
     wanderlist = Wanderlist(clean_document(cachedb.fill_all_refs(mongo, res)))
 
     acts = {"results": recommend_activities(wanderlist, mongo)}
+
+    if (len(acts['results']) == 0):
+        return activitiesrecforuser()
     return jsonify(acts)
 
 
@@ -93,14 +100,23 @@ def activitiesrecforuser():
     userlists = clean_document(mongo.db.users.find_one(
         {"_id": request.user['uid']}))["wanderlists"]
 
+
     if (userlists is None or len(userlists) == 0):
         return cursor_to_json(mongo.db.activities.find().limit(50))
 
-    wanderlist = Wanderlist(cachedb.fill_all_refs(mongo, userlists[0]["wanderlist"]))
+    wanderlist = Wanderlist(cachedb.fill_all_refs(
+        mongo, userlists[0]["wanderlist"]))
+
+    wanderlist._json["id"] = "invalid"
+
+    for l in userlists:
+        activities = cachedb.fill_all_refs(mongo, l['wanderlist'])['activities']
+        wl = Wanderlist(cachedb.fill_all_refs(mongo, l["wanderlist"])) 
+        wanderlist._json["activities"] += wl._json["activities"]
+
 
     acts = {"results": recommend_activities(wanderlist, mongo)}
     return jsonify(acts)
-
 
 
 def activitylist():
@@ -133,7 +149,7 @@ def activitynear():
 
     resp: Cursor = mongo.db.activities.find(
         {"location": {"$geoWithin":
-                          {"$centerSphere": [[lon, lat], range]}}})
+                      {"$centerSphere": [[lon, lat], range]}}})
 
     return cursor_to_json(resp)
 
@@ -165,6 +181,7 @@ def genericcrud(collection, id):
 
     if request.method == "POST":
         content = request.get_json()
+        return NOT_PERMITTED
 
         if content is None:
             return {"error": "No document"}, 400
@@ -199,14 +216,14 @@ def genericcreate(collection):
     return jsonify(content)
 
 
-
 @app.route('/user', methods=["GET", "POST"])
 def getuser():
     if request.method == "GET":
         res = get_request_user()
 
         if res is None:
-            doc = firebase.get_db().collection(u'users').document(request.user['uid'])
+            doc = firebase.get_db().collection(
+                u'users').document(request.user['uid'])
             if doc.get().to_dict() is None:
                 return NOT_FOUND
 
@@ -214,7 +231,8 @@ def getuser():
             res = doc.get().to_dict()
             res["_id"] = doc.id
             res["_updated"] = time.time()
-            mdbref = mongo.db.get_collection("users", codec_options=cachedb.codec_options)
+            mdbref = mongo.db.get_collection(
+                "users", codec_options=cachedb.codec_options)
             mdbref.replace_one({"_id": doc.id}, res, upsert=True)
 
         val = cachedb.fill_all_refs(mongo, res)
@@ -227,7 +245,8 @@ def getuser():
 
         content["_id"] = request.user["uid"]
         content["_updated"] = time.time()
-        res = mongo.db.users.update({'_id': request.user["uid"]}, content, True)
+        res = mongo.db.users.update(
+            {'_id': request.user["uid"]}, content, True)
         return {}
 
 
@@ -240,7 +259,7 @@ def rewardsteps():
 def recommend_reward():
     user = get_request_user()
     if "rewards" not in user:
-        return mongo.db.rewards.find_one()
+        return clean_document(mongo.db.rewards.find_one())
 
     users_rewards = [r["reward"]["ref"].split("/")[1] for r in user["rewards"]]
     cursor = mongo.db.rewards.find({"_id": {"$not": {"$in": users_rewards}}})

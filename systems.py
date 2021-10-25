@@ -44,7 +44,8 @@ def compare_activity(wanderlist: Wanderlist, activity: Activity):
     wlweighting = wanderlistweighting(wanderlist)
 
     for a in wanderlist.activities():
-        dist = geopy.distance.distance(a.locationLatLng(), activity.locationLatLng()).km
+        dist = geopy.distance.distance(
+            a.locationLatLng(), activity.locationLatLng()).km
         dist = (MAX_REC_DIST - dist) / MAX_REC_DIST
 
         totaltags = len(activity.tags()) + len(wlweighting["tags"])
@@ -68,7 +69,7 @@ def compare_activity(wanderlist: Wanderlist, activity: Activity):
 def activities_near(mongo, lat, lon, rng):
     resp: Cursor = mongo.db.activities.find(
         {"location": {"$geoWithin":
-                          {"$centerSphere": [[lon, lat], rng]}}})
+                      {"$centerSphere": [[lon, lat], rng]}}})
     return [Activity(a) for a in cursor_to_json(resp)["results"]]
 
 
