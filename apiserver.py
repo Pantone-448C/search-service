@@ -180,7 +180,6 @@ def genericcrud(collection, id):
 
     if request.method == "POST":
         content = request.get_json()
-        return NOT_PERMITTED
 
         if content is None:
             return {"error": "No document"}, 400
