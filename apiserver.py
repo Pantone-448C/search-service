@@ -256,17 +256,19 @@ def rewardsteps():
 @app.route('/user/rewards/next', methods=["GET"])
 def recommend_reward():
     user = get_request_user()
+
     if "rewards" not in user:
         return clean_document(mongo.db.rewards.find_one())
 
-    users_rewards = [r["reward"]["ref"].split("/")[1] for r in user["rewards"]]
-    print('yeats')
+    users_rewards = [r["reward"]["id"] for r in user["rewards"]]
+
     cursor = mongo.db.rewards.find({"_id": {"$not": {"$in": users_rewards}}})
     available_rewards = [r for r in cursor]
+
     if len(available_rewards) == 0:
         return NO_REWARDS
     # choose the best one
-    return jsonify(clean_document(available_rewards[0]))
+    return jsonify(clean_document(random.choice(available_rewards)))
 
 
 if __name__ == "__main__":
