@@ -76,7 +76,8 @@ def sync_table(session, name: str):
         rec["_updated"] = update_stamp
         mdbref.replace_one({"_id": doc.id}, rec, upsert=True, session=session)
 
-    res = mdbref.delete_many({"_updated": {"$lt": update_stamp}}, session=session)
+    res = mdbref.delete_many(
+        {"_updated": {"$lt": update_stamp}}, session=session)
 
 
 def sync_callback(session):
@@ -162,7 +163,7 @@ def fill_all_refs(mongo, doc: json):
             return doc
 
     if isinstance(doc, dict):
-        for key,val in doc.items():
+        for key, val in doc.items():
             val = fill_all_refs(mongo, val)
             if val is None:
                 doc.pop(key)
@@ -178,7 +179,7 @@ def fill_all_refs(mongo, doc: json):
             ndoc = fill_all_refs(mongo, doc[i])
             if ndoc is None:
                 doc.pop(i)
-            else: 
+            else:
                 doc[i] = ndoc
 
     return doc

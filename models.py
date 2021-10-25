@@ -26,6 +26,7 @@ class Activity:
     def json(self):
         return self._json
 
+
 class Wanderlist:
 
     def __init__(self, json):

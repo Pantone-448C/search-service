@@ -17,6 +17,8 @@ BAD_COLLECTION = ({"error": "Not found"}, 400)
 
 NO_AUTH = ({"error": "No authorization"}, 401)
 
+NOT_PERMITTED = ({"error": "Not permitted "}, 401)
+
 NO_REWARDS = ({"error": "No appropriate reward found"}, 404)
 
 ERROR_500 = ({"error": "Internal Server Error"}, 500)

@@ -10,12 +10,13 @@ import os
 
 job_server = None
 
+
 def stop_scheduled():
     job_server.join()
     job_server.close()
 
+
 if __name__ == "__main__":
-    cachedb.sync_all()
     ctx = mp.get_context('spawn')
 
     job_server = ctx.Process(target=scheduled.run)

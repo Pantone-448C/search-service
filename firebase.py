@@ -9,6 +9,7 @@ import os
 cred = credentials.Certificate(os.environ.get("ADMIN_KEY_FILE"))
 firebase_admin.initialize_app(cred)
 
+
 def get_db():
     db = firestore.client()
     return db
@@ -25,4 +26,3 @@ if __name__ == "__main__":
 def verify_token(id_token):
     decoded_token = auth.verify_id_token(id_token)
     return decoded_token
-
