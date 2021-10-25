@@ -36,8 +36,6 @@ def resource_not_found(e):
 
 @app.before_request
 def enforce_auth():
-    if not ENFORCE_AUTH:
-        return
     if not request.headers.get('authorization'):
         return NO_AUTH
     else:
@@ -46,7 +44,8 @@ def enforce_auth():
             request.user = user
         except Exception as e:
             print(e)
-            return {"error": "Invalid token"}, 400
+            if ENFORCE_AUTH:
+                return {"error": "Invalid token"}, 400
 
 
 @app.route('/activity/search', methods=["GET"])
@@ -262,6 +261,7 @@ def recommend_reward():
         return clean_document(mongo.db.rewards.find_one())
 
     users_rewards = [r["reward"]["ref"].split("/")[1] for r in user["rewards"]]
+    print('yeats')
     cursor = mongo.db.rewards.find({"_id": {"$not": {"$in": users_rewards}}})
     available_rewards = [r for r in cursor]
     if len(available_rewards) == 0:
