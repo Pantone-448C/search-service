@@ -61,6 +61,7 @@ def activitysearch():
 
 @app.route('/activities', methods=["GET"])
 def activity():
+
     if "lat" in request.args.keys() or "lon" in request.args.keys():
         return activitynear()
     if "query" in request.args.keys():
@@ -79,10 +80,11 @@ def activitywanderlist():
     """
     recommend a list of activities based on an existing wanderlist.
     """
-    id = request.args["wanderlist"]
-    res = mongo.db.wanderlists.find_one({"_id": id})
+    iid = request.args["wanderlist"]
+    res = mongo.db.wanderlists.find_one({"_id": iid})
     if res is None:
         return NOT_FOUND
+
     wanderlist = Wanderlist(clean_document(cachedb.fill_all_refs(mongo, res)))
 
     acts = {"results": recommend_activities(wanderlist, mongo)}
@@ -97,12 +99,17 @@ def activitiesrecforuser():
     recommend a list of activities based on an existing wanderlist.
     """
 
-    userlists = clean_document(mongo.db.users.find_one(
-        {"_id": request.user['uid']}))["wanderlists"]
 
+    userlists = clean_document(mongo.db.users.find_one(
+        {"_id": request.user['uid']}))
+
+    if "wanderlists" in userlists.keys():
+        userlists = userlists['wanderlists']
+    else:
+        return cursor_to_json(mongo.db.activities.find().limit(5))
 
     if (userlists is None or len(userlists) == 0):
-        return cursor_to_json(mongo.db.activities.find().limit(50))
+        return cursor_to_json(mongo.db.activities.find().limit(5))
 
     wanderlist = Wanderlist(cachedb.fill_all_refs(
         mongo, userlists[0]["wanderlist"]))
@@ -115,7 +122,11 @@ def activitiesrecforuser():
         wanderlist._json["activities"] += wl._json["activities"]
 
 
-    acts = {"results": recommend_activities(wanderlist, mongo)}
+    recs = recommend_activities(wanderlist, mongo)
+    if (len(recs) == 0): 
+        return cursor_to_json(mongo.db.activities.find().limit(5))
+
+    acts = {"results": recs}
     return jsonify(acts)
 
 
