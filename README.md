@@ -4,21 +4,13 @@
 Provides a simple REST api for searching the firebase instance.
 
 ## Installation
+Installation of this API requires a working docker and docker-compose install. See steps below for details.
 
-1. Ensure you have a working local mongodb server. 
-2. Place the admin api json private key at `wanderlistkey.json`
-3. Ensure the constant `CONNECTION_STRING` in `cachedb.py` to points to the mongodb
-   instance.
-
-```shell
-python3 -m venv env 
-source env/bin/activate
-pip install -r requirements.txt
-python main.py
-```
-
-- `python cachedb.py` will sync the Firestore into mongodb
-- `python main.py` will sync the Firestore and start the flask server
+1. Setup a working install of Docker (https://docs.docker.com/get-docker/)
+2. Setup a working install of docker-compose (https://docs.docker.com/compose/install/)
+3. Run `git clone https://github.com/Pantone-448C/search-service` to clone the repository to `./search-service`
+4. Place the Firebase Admin API JSON private key `wanderlistkey.json` within the cloned folder
+5. Run `docker-compose up -d` from the cloned folder
 
 ## API
 Must Set header
