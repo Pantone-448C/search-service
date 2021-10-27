@@ -15,6 +15,7 @@ def update_wanderlist_thumbs_one(list_id):
 
 
 def update_wanderlist_thumbs():
+    print("Updated Thumbnails")
     c = cachedb.get_db()['wanderlist']
     lists = c.get_collection("wanderlists").find({'$where': "this.activities.length>0"})
     make_first_activity_thumb(lists)
