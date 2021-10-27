@@ -8,6 +8,7 @@ from util import *
 from constant_responses import *
 from systems import *
 import random
+from scheduled import update_wanderlist_thumbs_one
 
 app = Flask(__name__)
 app.config["MONGO_URI"] = cachedb.CONNECTION_STRING
@@ -199,8 +200,12 @@ def genericcrud(collection, id):
         content["_id"] = id
         content["_updated"] = time.time()
         res = mongo.db[collection].update_one({"_id": id}, {'$set': content})
+
         if (res is None):
             return {"error:", "Document doesnt exist, use create method instead"}, 400
+
+        if collection == "wanderlists":
+            update_wanderlist_thumbs_one(id)
 
     return {}
 

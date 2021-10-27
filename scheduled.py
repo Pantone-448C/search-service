@@ -8,27 +8,32 @@ import cachedb
 TIMEOUT_SECS = 200
 
 
+def update_wanderlist_thumbs_one(list_id):
+    c = cachedb.get_db()['wanderlist']
+    lists = c.get_collection("wanderlists").find({"_id": list_id})
+    make_first_activity_thumb(lists)
+
+
 def update_wanderlist_thumbs():
     c = cachedb.get_db()['wanderlist']
-    lists = c.get_collection("wanderlists").find(
-        {"icon": "", '$where': "this.activities.length>0"})
+    lists = c.get_collection("wanderlists").find({'$where': "this.activities.length>0"})
+    make_first_activity_thumb(lists)
 
-    for list in lists:
-        if "activities" in list.keys():
-            if len(list['activities']) > 0:
-                activityid = list['activities'][0]['ref'].split("/")[1]
-                activity = c.get_collection(
-                    'activities').find_one({"_id": activityid})
+
+def make_first_activity_thumb(wanderlists: list):
+    c = cachedb.get_db()['wanderlist']
+    for l in wanderlists:
+        if "activities" in l.keys():
+            if len(l['activities']) > 0:
+                activityid = l['activities'][0]['ref'].split("/")[1]
+                activity = c.get_collection('activities').find_one({"_id": activityid})
                 if "image_url" in activity.keys():
                     if len(activity['image_url']) > 2:
-                        #list['icon'] = activity['image_url']
                         c.get_collection('wanderlists').update(
-                            {"_id": list['_id']}, {"$set": {'icon': activity['image_url']}})
-
+                            {"_id": l['_id']}, {"$set": {'icon': activity['image_url']}})
 
 def run():
     print("Started scheduled jobs")
-    cachedb.sync_all()
     while True:
         try:
             while True:
@@ -37,3 +42,5 @@ def run():
                 time.sleep(1000)
         except KeyboardInterrupt:
             return
+
+
