@@ -34,6 +34,7 @@ def make_first_activity_thumb(wanderlists: list):
 
 def run():
     print("Started scheduled jobs")
+    cachedb.sync_all()
     while True:
         try:
             while True:

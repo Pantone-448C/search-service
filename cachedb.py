@@ -163,12 +163,15 @@ def fill_all_refs(mongo, doc: json):
             return doc
 
     if isinstance(doc, dict):
+        topop = []
         for key, val in doc.items():
             val = fill_all_refs(mongo, val)
             if val is None:
-                doc.pop(key)
+                topop.append(key)
             else:
                 doc[key] = val
+        for key in topop:
+            doc.pop(key)
 
         if "_id" in doc:
             doc["id"] = doc.pop("_id")
