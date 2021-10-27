@@ -31,9 +31,10 @@ This can be obtained in flutter using:
   }
 ```
 
-### GET
+Errors return an error message in the "error" field of the returned JSON map.
 
-#### Whole Document
+
+#### GET Document
 
 ```shell
 /activities/$id
@@ -42,6 +43,8 @@ This can be obtained in flutter using:
 ```
 
 ### Search
+
+methods: `GET`
 
 Text query
 
@@ -57,7 +60,25 @@ By location
 
 The range is optional, and specified as a radius in kilometers of the specified location.
 
+### Recommendation
+
+methods: `GET`
+
+By Wanderlist
+
+```shell
+/activities/?wanderlist=<wanderlistid>
+```
+
+For the authenticated user profile
+
+```shell
+/activities/?rec
+```
+
 ### User
+
+methods: `GET`, `POST`
 
 The user is identified by the firebase user token.
 
@@ -66,6 +87,8 @@ The user is identified by the firebase user token.
 ```
 
 #### Rewards
+
+methods: `GET`
 
 The points required for each new reward to be attained by users.
 
@@ -77,5 +100,13 @@ The next recommended award
 
 ```shell
 /user/rewards/next
+```
+
+#### Wanderlist
+
+methods: `GET`, `POST`
+
+```shell
+/wanderlists/wanderlistid
 ```
 
