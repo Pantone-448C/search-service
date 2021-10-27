@@ -7,6 +7,7 @@ import firebase
 from util import *
 from constant_responses import *
 from systems import *
+from scheduled import update_wanderlist_thumbs_one
 
 app = Flask(__name__)
 app.config["MONGO_URI"] = cachedb.CONNECTION_STRING
@@ -196,6 +197,8 @@ def genericcreate(collection):
     content["_updated"] = time.time()
     res = mongo.db[collection].insert_one(content)
 
+    update_wanderlist_thumbs_one(content['_id'])
+
     return jsonify(content)
 
 
@@ -242,6 +245,7 @@ def recommend_reward():
     if "rewards" not in user:
         return mongo.db.rewards.find_one()
 
+    print(user_rewards)
     users_rewards = [r["reward"]["ref"].split("/")[1] for r in user["rewards"]]
     cursor = mongo.db.rewards.find({"_id": {"$not": {"$in": users_rewards}}})
     available_rewards = [r for r in cursor]
