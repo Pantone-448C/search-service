@@ -281,9 +281,10 @@ def recommend_reward():
 
     cursor = mongo.db.rewards.find({"_id": {"$not": {"$in": users_rewards}}})
     available_rewards = [r for r in cursor]
-
     if len(available_rewards) == 0:
-        return NO_REWARDS
+        cursor = mongo.db.rewards.find()
+        available_rewards = [r for r in cursor]
+
     # choose the best one
     return jsonify(clean_document(random.choice(available_rewards)))
 

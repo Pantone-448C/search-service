@@ -8,6 +8,7 @@ from pymongo.errors import CollectionInvalid
 from pymongo.read_concern import ReadConcern
 import firebase
 import time
+import scheduled
 
 from bson.codec_options import TypeCodec, TypeRegistry, CodecOptions
 
@@ -137,6 +138,9 @@ def sync_all():
         sync_transacted()
     else:
         sync_notransaction()
+
+    scheduled.update_wanderlist_thumbs()
+    print("Synchronised DB from Firebase")
 
 
 def fill_ref(mongo, ref_str):
